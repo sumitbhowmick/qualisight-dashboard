@@ -3,8 +3,8 @@ import { QMIScore } from '@/components/QMIScore';
 import { CategoryCard } from '@/components/CategoryCard';
 import { MaturityRadar } from '@/components/MaturityRadar';
 import { TrendChart } from '@/components/TrendChart';
+import { Navigation } from '@/components/Navigation';
 import { categories, calculateQMI, qmiHistory } from '@/lib/mockData';
-import { Activity } from 'lucide-react';
 
 const Index = () => {
   const qmiScore = calculateQMI();
@@ -26,24 +26,13 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-card">
-        <div className="container mx-auto px-6 py-6">
-          <div className="flex items-center gap-3">
-            <Activity className="w-8 h-8 text-primary" />
-            <div>
-              <h1 className="text-3xl font-bold">Quality Monitoring Dashboard</h1>
-              <p className="text-muted-foreground">Travel System Quality Maturity Index</p>
-            </div>
-          </div>
-        </div>
-      </div>
+      <Navigation />
 
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Executive Summary */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-6">Executive Summary</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Executive Summary</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
             {/* QMI Score */}
             <Card className="p-6 flex items-center justify-center">
               <QMIScore score={qmiScore} trend={qmiTrend} />
@@ -68,7 +57,7 @@ const Index = () => {
         </div>
 
         {/* Top Improvements and Risks */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
           <Card className="p-6">
             <h3 className="font-semibold mb-4 text-success">Top 5 Improvements</h3>
             <div className="space-y-3">
@@ -105,9 +94,9 @@ const Index = () => {
         </div>
 
         {/* Category Panels */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold mb-6">Quality Categories</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="mb-6 sm:mb-8">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Quality Categories</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {categories.map((category) => (
               <CategoryCard key={category.id} category={category} />
             ))}
