@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigation } from '@/components/Navigation';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { categories } from '@/lib/mockData';
 import { Save, RotateCcw } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useConfig } from '@/contexts/ConfigContext';
 
 interface CategoryWeight {
   id: string;
@@ -25,20 +26,58 @@ interface KPIWeight {
 
 export default function Settings() {
   const { toast } = useToast();
-  const [categoryWeights, setCategoryWeights] = useState<CategoryWeight[]>(
-    categories.map(cat => ({ id: cat.id, name: cat.name, weight: cat.weight }))
-  );
+  const { kpiWeights: savedKpiWeights, categoryWeights: savedCategoryWeights, updateKPIWeights, updateCategoryWeights } = useConfig();
+  
+  const [categoryWeights, setCategoryWeights] = useState<CategoryWeight[]>(() => {
+    return categories.map(cat => {
+      const saved = savedCategoryWeights.find(w => w.categoryId === cat.id);
+      return {
+        id: cat.id,
+        name: cat.name,
+        weight: saved?.weight || cat.weight
+      };
+    });
+  });
 
-  const [kpiWeights, setKpiWeights] = useState<KPIWeight[]>(
-    categories.flatMap(cat =>
-      cat.kpis.map(kpi => ({
-        categoryId: cat.id,
-        kpiId: kpi.id,
-        kpiName: kpi.name,
-        weight: 100 / cat.kpis.length, // Equal distribution by default
-      }))
-    )
-  );
+  const [kpiWeights, setKpiWeights] = useState<KPIWeight[]>(() => {
+    return categories.flatMap(cat =>
+      cat.kpis.map(kpi => {
+        const saved = savedKpiWeights.find(w => w.kpiId === kpi.id);
+        return {
+          categoryId: cat.id,
+          kpiId: kpi.id,
+          kpiName: kpi.name,
+          weight: saved?.weight || (100 / cat.kpis.length),
+        };
+      })
+    );
+  });
+
+  // Update local state when context changes
+  useEffect(() => {
+    setCategoryWeights(categories.map(cat => {
+      const saved = savedCategoryWeights.find(w => w.categoryId === cat.id);
+      return {
+        id: cat.id,
+        name: cat.name,
+        weight: saved?.weight || cat.weight
+      };
+    }));
+  }, [savedCategoryWeights]);
+
+  useEffect(() => {
+    setKpiWeights(categories.flatMap(cat =>
+      cat.kpis.map(kpi => {
+        const saved = savedKpiWeights.find(w => w.kpiId === kpi.id);
+        return {
+          categoryId: cat.id,
+          kpiId: kpi.id,
+          kpiName: kpi.name,
+          weight: saved?.weight || (100 / cat.kpis.length),
+        };
+      })
+    ));
+  }, [savedKpiWeights]);
 
   const totalWeight = categoryWeights.reduce((sum, cat) => sum + cat.weight, 0);
 
@@ -84,6 +123,18 @@ export default function Settings() {
       return;
     }
 
+    // Save to context
+    updateCategoryWeights(categoryWeights.map(cat => ({
+      categoryId: cat.id,
+      weight: cat.weight,
+    })));
+
+    updateKPIWeights(kpiWeights.map(kpi => ({
+      kpiId: kpi.kpiId,
+      categoryId: kpi.categoryId,
+      weight: kpi.weight,
+    })));
+
     toast({
       title: "Settings Saved",
       description: "Your configuration has been saved successfully",
@@ -122,52 +173,56 @@ export default function Settings() {
         <div className="mb-6 sm:mb-8">
           <h2 className="text-2xl sm:text-3xl font-bold mb-2">Dashboard Settings</h2>
           <p className="text-sm sm:text-base text-muted-foreground">
-            Configure KPI mappings, category weights, and Quality Maturity Index calculations
+            Configure KPI mappings, weights, and Quality Maturity Index calculation
           </p>
         </div>
 
-        <Tabs defaultValue="categories" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 max-w-md">
-            <TabsTrigger value="categories">Category Weights</TabsTrigger>
-            <TabsTrigger value="kpis">KPI Weights</TabsTrigger>
+        <Tabs defaultValue="category-weights" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="category-weights">Category Weights</TabsTrigger>
+            <TabsTrigger value="kpi-weights">KPI Weights</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="categories" className="space-y-6">
+          <TabsContent value="category-weights" className="space-y-4">
             <Card className="p-4 sm:p-6">
               <div className="mb-6">
-                <h3 className="text-lg sm:text-xl font-semibold mb-2">Quality Category Weights</h3>
+                <h3 className="text-lg font-semibold mb-2">Quality Category Weights</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Configure how much each category contributes to the overall Quality Maturity Index
+                  Configure how each category contributes to the overall Quality Maturity Index.
+                  Total must equal 100%.
                 </p>
-                <div className={`text-sm font-medium ${Math.abs(totalWeight - 100) < 0.1 ? 'text-success' : 'text-danger'}`}>
-                  Total Weight: {totalWeight.toFixed(1)}% {Math.abs(totalWeight - 100) < 0.1 ? '✓' : '(Must equal 100%)'}
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="text-muted-foreground">Total Weight:</span>
+                  <span className={`font-bold ${Math.abs(totalWeight - 100) < 0.1 ? 'text-success' : 'text-danger'}`}>
+                    {totalWeight.toFixed(1)}%
+                  </span>
                 </div>
               </div>
 
               <div className="space-y-6">
                 {categoryWeights.map(category => (
-                  <div key={category.id} className="space-y-3">
-                    <div className="flex items-center justify-between gap-4">
-                      <Label className="text-sm sm:text-base font-medium truncate flex-1">{category.name}</Label>
-                      <div className="flex items-center gap-3 flex-shrink-0">
-                        <Input
-                          type="number"
-                          value={category.weight}
-                          onChange={(e) => handleCategoryWeightChange(category.id, parseFloat(e.target.value) || 0)}
-                          className="w-20 text-right"
-                          min="0"
-                          max="100"
-                          step="0.1"
-                        />
-                        <span className="text-sm text-muted-foreground">%</span>
-                      </div>
+                  <div key={category.id} className="space-y-2 p-4 border rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor={`cat-${category.id}`} className="font-medium">
+                        {category.name}
+                      </Label>
+                      <Input
+                        id={`cat-${category.id}`}
+                        type="number"
+                        value={category.weight}
+                        onChange={(e) => handleCategoryWeightChange(category.id, parseFloat(e.target.value) || 0)}
+                        className="w-20 text-right"
+                        step="0.1"
+                        min="0"
+                        max="100"
+                      />
                     </div>
                     <Slider
                       value={[category.weight]}
                       onValueChange={([value]) => handleCategoryWeightChange(category.id, value)}
                       max={100}
                       step={0.1}
-                      className="w-full"
+                      className="mt-2"
                     />
                   </div>
                 ))}
@@ -175,47 +230,47 @@ export default function Settings() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="kpis" className="space-y-6">
+          <TabsContent value="kpi-weights" className="space-y-4">
             {categories.map(category => {
               const categoryKPIs = kpiWeights.filter(kpi => kpi.categoryId === category.id);
               const categoryTotal = getCategoryKPITotal(category.id);
-              
+
               return (
                 <Card key={category.id} className="p-4 sm:p-6">
                   <div className="mb-4">
-                    <h3 className="text-base sm:text-lg font-semibold mb-1">{category.name}</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground mb-2">{category.description}</p>
-                    <div className={`text-sm font-medium ${Math.abs(categoryTotal - 100) < 0.1 ? 'text-success' : 'text-danger'}`}>
-                      Total: {categoryTotal.toFixed(1)}% {Math.abs(categoryTotal - 100) < 0.1 ? '✓' : '(Must equal 100%)'}
+                    <h3 className="text-lg font-semibold mb-2">{category.name}</h3>
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-muted-foreground">Category KPI Total:</span>
+                      <span className={`font-bold ${Math.abs(categoryTotal - 100) < 0.1 ? 'text-success' : 'text-danger'}`}>
+                        {categoryTotal.toFixed(1)}%
+                      </span>
                     </div>
                   </div>
 
                   <div className="space-y-4">
                     {categoryKPIs.map(kpi => (
-                      <div key={kpi.kpiId} className="space-y-2">
-                        <div className="flex items-center justify-between gap-4">
-                          <Label className="text-xs sm:text-sm truncate flex-1">{kpi.kpiName}</Label>
-                          <div className="flex items-center gap-2 flex-shrink-0">
-                            <Input
-                              type="number"
-                              value={kpi.weight.toFixed(1)}
-                              onChange={(e) =>
-                                handleKPIWeightChange(category.id, kpi.kpiId, parseFloat(e.target.value) || 0)
-                              }
-                              className="w-16 sm:w-20 text-right text-sm"
-                              min="0"
-                              max="100"
-                              step="0.1"
-                            />
-                            <span className="text-xs sm:text-sm text-muted-foreground">%</span>
-                          </div>
+                      <div key={kpi.kpiId} className="space-y-2 p-3 border rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor={`kpi-${kpi.kpiId}`} className="text-sm">
+                            {kpi.kpiName}
+                          </Label>
+                          <Input
+                            id={`kpi-${kpi.kpiId}`}
+                            type="number"
+                            value={kpi.weight}
+                            onChange={(e) => handleKPIWeightChange(category.id, kpi.kpiId, parseFloat(e.target.value) || 0)}
+                            className="w-20 text-right"
+                            step="0.1"
+                            min="0"
+                            max="100"
+                          />
                         </div>
                         <Slider
                           value={[kpi.weight]}
                           onValueChange={([value]) => handleKPIWeightChange(category.id, kpi.kpiId, value)}
                           max={100}
                           step={0.1}
-                          className="w-full"
+                          className="mt-2"
                         />
                       </div>
                     ))}
@@ -226,12 +281,12 @@ export default function Settings() {
           </TabsContent>
         </Tabs>
 
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8">
-          <Button onClick={handleSave} className="w-full sm:w-auto">
+        <div className="flex gap-4 mt-6">
+          <Button onClick={handleSave} className="flex-1 sm:flex-initial">
             <Save className="w-4 h-4 mr-2" />
             Save Configuration
           </Button>
-          <Button onClick={handleReset} variant="outline" className="w-full sm:w-auto">
+          <Button onClick={handleReset} variant="outline" className="flex-1 sm:flex-initial">
             <RotateCcw className="w-4 h-4 mr-2" />
             Reset to Defaults
           </Button>

@@ -4,10 +4,13 @@ import { CategoryCard } from '@/components/CategoryCard';
 import { MaturityRadar } from '@/components/MaturityRadar';
 import { TrendChart } from '@/components/TrendChart';
 import { Navigation } from '@/components/Navigation';
-import { categories, calculateQMI, qmiHistory } from '@/lib/mockData';
+import { qmiHistory } from '@/lib/mockData';
+import { useConfig } from '@/contexts/ConfigContext';
 
 const Index = () => {
-  const qmiScore = calculateQMI();
+  const { getCalculatedCategories, getCalculatedQMI } = useConfig();
+  const categories = getCalculatedCategories();
+  const qmiScore = getCalculatedQMI();
   const qmiTrend = 5.2;
 
   const topImprovements = [

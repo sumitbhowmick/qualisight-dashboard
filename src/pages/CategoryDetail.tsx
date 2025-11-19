@@ -3,13 +3,15 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { KPIMetricCard } from '@/components/KPIMetricCard';
 import { Navigation } from '@/components/Navigation';
-import { categories } from '@/lib/mockData';
-import { ArrowLeft, TrendingUp } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Edit } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { useConfig } from '@/contexts/ConfigContext';
 
 const CategoryDetail = () => {
   const { categoryId } = useParams();
   const navigate = useNavigate();
+  const { getCalculatedCategories } = useConfig();
+  const categories = getCalculatedCategories();
   const category = categories.find((c) => c.id === categoryId);
 
   if (!category) {
@@ -98,7 +100,18 @@ const CategoryDetail = () => {
           <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Key Performance Indicators</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {category.kpis.map((kpi) => (
-              <KPIMetricCard key={kpi.id} kpi={kpi} />
+              <div key={kpi.id} className="relative">
+                <KPIMetricCard kpi={kpi} />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="absolute top-4 right-4"
+                  onClick={() => navigate(`/category/${categoryId}/kpi/${kpi.id}/data`)}
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Manage Data
+                </Button>
+              </div>
             ))}
           </div>
         </div>
