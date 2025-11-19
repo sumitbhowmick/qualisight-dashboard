@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { KPIMetricCard } from '@/components/KPIMetricCard';
+import { Navigation } from '@/components/Navigation';
 import { categories } from '@/lib/mockData';
 import { ArrowLeft, TrendingUp } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
@@ -34,26 +35,28 @@ const CategoryDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
+      <Navigation />
+      
       <div className="border-b bg-card">
-        <div className="container mx-auto px-6 py-6">
+        <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
           <Button
             variant="ghost"
             onClick={() => navigate('/')}
-            className="mb-4"
+            className="mb-3 sm:mb-4"
+            size="sm"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Dashboard
           </Button>
-          <h1 className="text-3xl font-bold mb-2">{category.name}</h1>
-          <p className="text-muted-foreground">{category.description}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">{category.name}</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">{category.description}</p>
         </div>
       </div>
 
-      <div className="container mx-auto px-6 py-8">
+      <div className="container mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Category Overview */}
-        <Card className="p-6 mb-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <Card className="p-4 sm:p-6 mb-6 sm:mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <div>
               <div className="text-sm text-muted-foreground mb-2">Category Score</div>
               <div className={`text-4xl font-bold ${getScoreColor(category.score)}`}>
@@ -92,8 +95,8 @@ const CategoryDetail = () => {
 
         {/* KPI Metrics */}
         <div>
-          <h2 className="text-2xl font-bold mb-6">Key Performance Indicators</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Key Performance Indicators</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {category.kpis.map((kpi) => (
               <KPIMetricCard key={kpi.id} kpi={kpi} />
             ))}
