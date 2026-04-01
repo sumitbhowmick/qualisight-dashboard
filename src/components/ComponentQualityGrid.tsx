@@ -1,10 +1,8 @@
 import { Card } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
-import { travelComponents, ComponentData } from '@/lib/mockData';
-import { TrendingUp, TrendingDown, Minus, ArrowRight } from 'lucide-react';
-import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { travelComponents } from '@/lib/mockData';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 
 const getScoreColor = (score: number) => {
   if (score >= 85) return 'hsl(var(--success))';
@@ -12,121 +10,134 @@ const getScoreColor = (score: number) => {
   return 'hsl(var(--danger))';
 };
 
-const getScoreClass = (score: number) => {
-  if (score >= 85) return 'text-success';
-  if (score >= 70) return 'text-warning';
-  return 'text-danger';
+const getChangeColor = (change: number) => {
+  if (change > 0) return 'hsl(var(--success))';
+  if (change < 0) return 'hsl(var(--danger))';
+  return 'hsl(var(--muted-foreground))';
 };
 
-const getBgClass = (score: number) => {
-  if (score >= 85) return 'bg-success/10 border-success/20';
-  if (score >= 70) return 'bg-warning/10 border-warning/20';
-  return 'bg-danger/10 border-danger/20';
+const CustomTooltip = ({ active, payload }: any) => {
+  if (!active || !payload?.length) return null;
+  const data = payload[0].payload;
+  return (
+    <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
+      <p className="font-semibold text-foreground text-sm mb-1">{data.fullName}</p>
+      <p className="text-sm text-muted-foreground">Group: {data.group}</p>
+      <p className="text-sm" style={{ color: getScoreColor(data.score) }}>
+        Current: {data.score}%
+      </p>
+      <p className="text-sm" style={{ color: getChangeColor(data.change) }}>
+        Change: {data.change > 0 ? '+' : ''}{data.change}%
+      </p>
+    </div>
+  );
 };
 
-const TrendIcon = ({ trend }: { trend: string }) => {
-  if (trend === 'up') return <TrendingUp className="w-3.5 h-3.5 text-success" />;
-  if (trend === 'down') return <TrendingDown className="w-3.5 h-3.5 text-danger" />;
-  return <Minus className="w-3.5 h-3.5 text-muted-foreground" />;
+const CustomBar = (props: any) => {
+  const { x, y, width, height, payload } = props;
+  if (!payload) return null;
+  const change = payload.change;
+  const arrowSize = 6;
+  const arrowX = x + width / 2;
+  const arrowY = y - 4;
+
+  return (
+    <g>
+      <rect x={x} y={y} width={width} height={height} fill={getScoreColor(payload.score)} rx={3} ry={3} />
+      {change > 0 && (
+        <polygon
+          points={`${arrowX},${arrowY - arrowSize * 1.5} ${arrowX - arrowSize},${arrowY} ${arrowX + arrowSize},${arrowY}`}
+          fill="hsl(var(--success))"
+        />
+      )}
+      {change < 0 && (
+        <polygon
+          points={`${arrowX},${arrowY + arrowSize * 0.5} ${arrowX - arrowSize},${arrowY - arrowSize} ${arrowX + arrowSize},${arrowY - arrowSize}`}
+          fill="hsl(var(--danger))"
+        />
+      )}
+      {/* Change label */}
+      <text
+        x={arrowX}
+        y={arrowY - (change !== 0 ? arrowSize * 1.8 : arrowSize * 0.3)}
+        textAnchor="middle"
+        fill={getChangeColor(change)}
+        fontSize={9}
+        fontWeight="bold"
+      >
+        {change > 0 ? '+' : ''}{change}
+      </text>
+    </g>
+  );
 };
 
 export const ComponentQualityGrid = () => {
   const navigate = useNavigate();
-  const [view, setView] = useState<'heatmap' | 'chart'>('heatmap');
 
-  const groups = Array.from(new Set(travelComponents.map(c => c.group)));
-  const sortedComponents = [...travelComponents].sort((a, b) => b.qualityScore - a.qualityScore);
-
-  const chartData = sortedComponents.map(c => ({
-    name: c.name.length > 20 ? c.name.substring(0, 18) + '…' : c.name,
-    fullName: c.name,
-    score: c.qualityScore,
-    id: c.id,
-  }));
+  const chartData = [...travelComponents]
+    .sort((a, b) => b.qualityScore - a.qualityScore)
+    .map(c => {
+      const history = c.history;
+      const prevScore = history.length >= 2 ? history[history.length - 2].value : c.qualityScore;
+      const change = Math.round((c.qualityScore - prevScore) * 10) / 10;
+      return {
+        name: c.name.length > 12 ? c.name.substring(0, 10) + '…' : c.name,
+        fullName: c.name,
+        group: c.group,
+        score: c.qualityScore,
+        change,
+        id: c.id,
+      };
+    });
 
   return (
     <div className="mb-6 sm:mb-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
         <h2 className="text-xl sm:text-2xl font-bold">Component Quality Index</h2>
-        <Tabs value={view} onValueChange={(v) => setView(v as 'heatmap' | 'chart')}>
-          <TabsList className="grid w-full grid-cols-2 max-w-[240px]">
-            <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
-            <TabsTrigger value="chart">Bar Chart</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1"><TrendingUp className="w-3.5 h-3.5 text-success" /> Improved</span>
+          <span className="flex items-center gap-1"><TrendingDown className="w-3.5 h-3.5 text-danger" /> Declined</span>
+          <span className="flex items-center gap-1"><Minus className="w-3.5 h-3.5 text-muted-foreground" /> No Change</span>
+        </div>
       </div>
 
-      {view === 'heatmap' ? (
-        <div className="space-y-6">
-          {groups.map(group => {
-            const groupComponents = travelComponents.filter(c => c.group === group);
-            return (
-              <div key={group}>
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">{group}</h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3">
-                  {groupComponents.map(component => (
-                    <Card
-                      key={component.id}
-                      onClick={() => navigate(`/component/${component.id}`)}
-                      className={`p-3 cursor-pointer transition-all hover:shadow-md hover:scale-[1.02] border ${getBgClass(component.qualityScore)} group`}
-                    >
-                      <div className="flex items-start justify-between mb-1">
-                        <span className={`text-lg sm:text-xl font-bold ${getScoreClass(component.qualityScore)}`}>
-                          {component.qualityScore}
-                        </span>
-                        <TrendIcon trend={component.trend} />
-                      </div>
-                      <div className="text-xs font-medium truncate group-hover:text-primary transition-colors" title={component.name}>
-                        {component.name}
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <Card className="p-4 sm:p-6">
-          <div className="h-[500px] sm:h-[600px]">
+      <Card className="p-4 sm:p-6">
+        <div className="h-[450px] sm:h-[500px] overflow-x-auto">
+          <div style={{ minWidth: `${chartData.length * 32}px`, height: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 20, top: 5, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis type="number" domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-                <YAxis
+              <BarChart data={chartData} margin={{ left: 5, right: 5, top: 30, bottom: 80 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis
                   dataKey="name"
-                  type="category"
-                  width={150}
                   stroke="hsl(var(--muted-foreground))"
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10, cursor: 'pointer' }}
-                  onClick={(e: any) => {
-                    const comp = travelComponents.find(c => c.name.startsWith(e.value?.replace('…', '')));
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 9 }}
+                  angle={-45}
+                  textAnchor="end"
+                  interval={0}
+                  height={80}
+                />
+                <YAxis
+                  domain={[0, 100]}
+                  stroke="hsl(var(--muted-foreground))"
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }}
+                />
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.3)' }} />
+                <ReferenceLine y={85} stroke="hsl(var(--success))" strokeDasharray="4 4" strokeOpacity={0.5} />
+                <ReferenceLine y={70} stroke="hsl(var(--warning))" strokeDasharray="4 4" strokeOpacity={0.5} />
+                <Bar
+                  dataKey="score"
+                  shape={<CustomBar />}
+                  cursor="pointer"
+                  onClick={(data: any) => {
+                    const comp = travelComponents.find(c => c.name === data.fullName);
                     if (comp) navigate(`/component/${comp.id}`);
                   }}
                 />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: 'hsl(var(--card))',
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px',
-                  }}
-                  labelStyle={{ color: 'hsl(var(--foreground))' }}
-                  formatter={(value: number) => [`${value}%`, 'Quality Score']}
-                  labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
-                />
-                <Bar dataKey="score" radius={[0, 4, 4, 0]} cursor="pointer" onClick={(data: any) => {
-                  const comp = travelComponents.find(c => c.name === data.fullName);
-                  if (comp) navigate(`/component/${comp.id}`);
-                }}>
-                  {chartData.map((entry, index) => (
-                    <Cell key={index} fill={getScoreColor(entry.score)} />
-                  ))}
-                </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </Card>
-      )}
+        </div>
+      </Card>
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
