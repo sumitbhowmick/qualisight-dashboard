@@ -4,6 +4,7 @@ import { CategoryCard } from '@/components/CategoryCard';
 import { MaturityRadar } from '@/components/MaturityRadar';
 import { TrendChart } from '@/components/TrendChart';
 import { Navigation } from '@/components/Navigation';
+import { ComponentQualityGrid } from '@/components/ComponentQualityGrid';
 import { qmiHistory } from '@/lib/mockData';
 import { useConfig } from '@/contexts/ConfigContext';
 
@@ -95,6 +96,9 @@ const Index = () => {
             </div>
           </Card>
         </div>
+
+        {/* Component Quality Index */}
+        <ComponentQualityGrid />
 
         {/* Category Panels */}
         <div className="mb-6 sm:mb-8">
