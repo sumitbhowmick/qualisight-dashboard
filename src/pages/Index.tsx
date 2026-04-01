@@ -4,6 +4,7 @@ import { CategoryCard } from '@/components/CategoryCard';
 import { MaturityRadar } from '@/components/MaturityRadar';
 import { TrendChart } from '@/components/TrendChart';
 import { Navigation } from '@/components/Navigation';
+import { ComponentQualityGrid } from '@/components/ComponentQualityGrid';
 import { qmiHistory } from '@/lib/mockData';
 import { useConfig } from '@/contexts/ConfigContext';
 
