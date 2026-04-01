@@ -820,3 +820,83 @@ export const qmiHistory = [
 export const calculateQMI = (): number => {
   return categories.reduce((sum, cat) => sum + (cat.score * cat.weight) / 100, 0);
 };
+
+// Component-level quality data
+export interface ComponentData {
+  id: string;
+  name: string;
+  group: string;
+  qualityScore: number;
+  trend: 'up' | 'down' | 'stable';
+  history: { month: string; value: number }[];
+}
+
+const generateHistory = (base: number, volatility: number): { month: string; value: number }[] => {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  let value = base - volatility * 3;
+  return months.map(month => {
+    value = Math.min(100, Math.max(30, value + (Math.random() - 0.3) * volatility));
+    return { month, value: Math.round(value * 10) / 10 };
+  });
+};
+
+export const travelComponents: ComponentData[] = [
+  // Booking & Reservation
+  { id: 'flight-search', name: 'Flight Search Engine', group: 'Booking & Reservation', qualityScore: 87, trend: 'up', history: generateHistory(87, 3) },
+  { id: 'hotel-search', name: 'Hotel Search Engine', group: 'Booking & Reservation', qualityScore: 82, trend: 'up', history: generateHistory(82, 4) },
+  { id: 'car-rental', name: 'Car Rental Booking', group: 'Booking & Reservation', qualityScore: 78, trend: 'stable', history: generateHistory(78, 3) },
+  { id: 'cruise-booking', name: 'Cruise Booking', group: 'Booking & Reservation', qualityScore: 71, trend: 'down', history: generateHistory(71, 5) },
+  { id: 'package-builder', name: 'Package Builder', group: 'Booking & Reservation', qualityScore: 75, trend: 'up', history: generateHistory(75, 4) },
+  { id: 'seat-selection', name: 'Seat Selection', group: 'Booking & Reservation', qualityScore: 90, trend: 'up', history: generateHistory(90, 2) },
+  { id: 'ancillary-services', name: 'Ancillary Services', group: 'Booking & Reservation', qualityScore: 84, trend: 'stable', history: generateHistory(84, 3) },
+  { id: 'multi-city', name: 'Multi-City Itinerary', group: 'Booking & Reservation', qualityScore: 68, trend: 'down', history: generateHistory(68, 5) },
+
+  // Pricing & Revenue
+  { id: 'fare-engine', name: 'Fare Calculation Engine', group: 'Pricing & Revenue', qualityScore: 91, trend: 'up', history: generateHistory(91, 2) },
+  { id: 'pricing-rules', name: 'Pricing Rules Engine', group: 'Pricing & Revenue', qualityScore: 85, trend: 'stable', history: generateHistory(85, 3) },
+  { id: 'tax-calculator', name: 'Tax & Fee Calculator', group: 'Pricing & Revenue', qualityScore: 93, trend: 'up', history: generateHistory(93, 2) },
+  { id: 'currency-converter', name: 'Currency Converter', group: 'Pricing & Revenue', qualityScore: 88, trend: 'stable', history: generateHistory(88, 2) },
+  { id: 'commission-engine', name: 'Commission Engine', group: 'Pricing & Revenue', qualityScore: 79, trend: 'up', history: generateHistory(79, 4) },
+
+  // Payment & Billing
+  { id: 'payment-gateway', name: 'Payment Gateway', group: 'Payment & Billing', qualityScore: 94, trend: 'up', history: generateHistory(94, 2) },
+  { id: 'invoicing', name: 'Invoicing System', group: 'Payment & Billing', qualityScore: 86, trend: 'stable', history: generateHistory(86, 3) },
+  { id: 'refund-engine', name: 'Refund Processing', group: 'Payment & Billing', qualityScore: 76, trend: 'down', history: generateHistory(76, 5) },
+  { id: 'credit-management', name: 'Credit Management', group: 'Payment & Billing', qualityScore: 80, trend: 'up', history: generateHistory(80, 3) },
+
+  // Customer Management
+  { id: 'profile-manager', name: 'Traveler Profile Manager', group: 'Customer Management', qualityScore: 83, trend: 'up', history: generateHistory(83, 3) },
+  { id: 'loyalty-program', name: 'Loyalty Program', group: 'Customer Management', qualityScore: 77, trend: 'stable', history: generateHistory(77, 4) },
+  { id: 'corporate-accounts', name: 'Corporate Accounts', group: 'Customer Management', qualityScore: 81, trend: 'up', history: generateHistory(81, 3) },
+  { id: 'travel-policy', name: 'Travel Policy Engine', group: 'Customer Management', qualityScore: 74, trend: 'down', history: generateHistory(74, 4) },
+
+  // Integration & Connectivity
+  { id: 'gds-connector', name: 'GDS Connector', group: 'Integration & Connectivity', qualityScore: 89, trend: 'up', history: generateHistory(89, 2) },
+  { id: 'ndc-gateway', name: 'NDC Gateway', group: 'Integration & Connectivity', qualityScore: 72, trend: 'up', history: generateHistory(72, 5) },
+  { id: 'hotel-aggregator', name: 'Hotel Aggregator', group: 'Integration & Connectivity', qualityScore: 80, trend: 'stable', history: generateHistory(80, 3) },
+  { id: 'api-gateway', name: 'API Gateway', group: 'Integration & Connectivity', qualityScore: 92, trend: 'up', history: generateHistory(92, 2) },
+  { id: 'supplier-hub', name: 'Supplier Hub', group: 'Integration & Connectivity', qualityScore: 85, trend: 'stable', history: generateHistory(85, 3) },
+
+  // Operations & Support
+  { id: 'queue-manager', name: 'Queue Manager', group: 'Operations & Support', qualityScore: 81, trend: 'up', history: generateHistory(81, 3) },
+  { id: 'ticketing-engine', name: 'Ticketing Engine', group: 'Operations & Support', qualityScore: 88, trend: 'up', history: generateHistory(88, 2) },
+  { id: 'pnr-manager', name: 'PNR Manager', group: 'Operations & Support', qualityScore: 86, trend: 'stable', history: generateHistory(86, 3) },
+  { id: 'schedule-change', name: 'Schedule Change Handler', group: 'Operations & Support', qualityScore: 70, trend: 'down', history: generateHistory(70, 5) },
+  { id: 'notification-engine', name: 'Notification Engine', group: 'Operations & Support', qualityScore: 83, trend: 'up', history: generateHistory(83, 3) },
+
+  // Reporting & Analytics
+  { id: 'mis-reporting', name: 'MIS Reporting', group: 'Reporting & Analytics', qualityScore: 79, trend: 'up', history: generateHistory(79, 4) },
+  { id: 'bi-dashboard', name: 'BI Dashboard', group: 'Reporting & Analytics', qualityScore: 82, trend: 'up', history: generateHistory(82, 3) },
+  { id: 'data-warehouse', name: 'Data Warehouse', group: 'Reporting & Analytics', qualityScore: 76, trend: 'stable', history: generateHistory(76, 4) },
+
+  // Security & Compliance
+  { id: 'auth-service', name: 'Authentication Service', group: 'Security & Compliance', qualityScore: 95, trend: 'up', history: generateHistory(95, 1) },
+  { id: 'pci-compliance', name: 'PCI Compliance Module', group: 'Security & Compliance', qualityScore: 92, trend: 'stable', history: generateHistory(92, 2) },
+  { id: 'gdpr-engine', name: 'GDPR Engine', group: 'Security & Compliance', qualityScore: 89, trend: 'up', history: generateHistory(89, 2) },
+  { id: 'fraud-detection', name: 'Fraud Detection', group: 'Security & Compliance', qualityScore: 87, trend: 'up', history: generateHistory(87, 3) },
+
+  // User Interface
+  { id: 'web-frontend', name: 'Web Frontend', group: 'User Interface', qualityScore: 84, trend: 'up', history: generateHistory(84, 3) },
+  { id: 'mobile-app', name: 'Mobile App', group: 'User Interface', qualityScore: 78, trend: 'up', history: generateHistory(78, 4) },
+  { id: 'agent-desktop', name: 'Agent Desktop', group: 'User Interface', qualityScore: 73, trend: 'stable', history: generateHistory(73, 4) },
+];
