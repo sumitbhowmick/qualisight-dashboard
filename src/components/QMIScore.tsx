@@ -7,7 +7,7 @@ interface QMIScoreProps {
   className?: string;
 }
 
-export const QMIScore = ({ score, trend, className = '' }: QMIScoreProps) => {
+export const QMIScore = ({ score, trend, label = 'Quality Index', className = '' }: QMIScoreProps) => {
   const circumference = 2 * Math.PI * 90;
   const offset = circumference - (score / 100) * circumference;
 
