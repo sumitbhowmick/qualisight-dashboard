@@ -809,13 +809,6 @@ export const categories: CategoryData[] = [
   },
 ];
 
-export const qmiHistory = [
-  { month: 'Jan', value: 74 },
-  { month: 'Feb', value: 76 },
-  { month: 'Mar', value: 77 },
-  { month: 'Apr', value: 79 },
-  { month: 'May', value: 80.5 },
-];
 
 export const calculateQMI = (): number => {
   return categories.reduce((sum, cat) => sum + (cat.score * cat.weight) / 100, 0);
