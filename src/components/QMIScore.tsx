@@ -46,7 +46,7 @@ export const QMIScore = ({ score, trend, label = 'Quality Index', className = ''
           <span className={`text-5xl font-bold ${getScoreColor(score)}`}>
             {score.toFixed(1)}%
           </span>
-          <span className="text-sm text-muted-foreground mt-1">Quality Index</span>
+          <span className="text-xs text-muted-foreground mt-1">{label}</span>
         </div>
       </div>
       <div className="flex items-center gap-2 mt-4">
