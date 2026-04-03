@@ -815,16 +815,24 @@ export const calculateQMI = (): number => {
 };
 
 // Component-level quality data
+export interface ComponentCategoryScore {
+  categoryId: string;
+  builtInScore: number;
+  perceivedScore: number;
+  builtInPrevScore: number;
+  perceivedPrevScore: number;
+}
+
 export interface ComponentData {
   id: string;
   name: string;
-  group: string;
   qualityScore: number;
   perceivedQualityScore: number;
   trend: 'up' | 'down' | 'stable';
   perceivedTrend: 'up' | 'down' | 'stable';
   history: { month: string; value: number }[];
   perceivedHistory: { month: string; value: number }[];
+  categoryScores: ComponentCategoryScore[];
 }
 
 const generateHistory = (base: number, volatility: number): { month: string; value: number }[] => {
