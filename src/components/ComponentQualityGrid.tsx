@@ -47,7 +47,7 @@ const CustomTooltip = ({ active, payload }: any) => {
   return (
     <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
       <p className="font-semibold text-foreground text-sm mb-1">{data.fullName}</p>
-      <p className="text-sm text-muted-foreground">Group: {data.group}</p>
+      
       <p className="text-sm" style={{ color: getScoreColor(data.score) }}>Current: {data.score}%</p>
       <p className="text-sm" style={{ color: getChangeColor(data.change) }}>Change: {data.change > 0 ? '+' : ''}{data.change}%</p>
     </div>
