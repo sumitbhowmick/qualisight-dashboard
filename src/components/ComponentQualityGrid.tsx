@@ -34,7 +34,7 @@ const getChartData = (mode: QualityMode) =>
       return {
         name: c.name.length > 14 ? c.name.substring(0, 12) + '…' : c.name,
         fullName: c.name,
-        group: c.group,
+        
         score,
         change,
         id: c.id,
