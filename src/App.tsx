@@ -10,6 +10,7 @@ import CategoryDetail from "./pages/CategoryDetail";
 import Settings from "./pages/Settings";
 import KPIDataEntry from "./pages/KPIDataEntry";
 import ComponentDetail from "./pages/ComponentDetail";
+import ComponentCategoryDetail from "./pages/ComponentCategoryDetail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
