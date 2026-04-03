@@ -2,8 +2,10 @@ import { Card } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
 import { travelComponents } from '@/lib/mockData';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+
+type QualityMode = 'builtin' | 'perceived';
 
 const getScoreColor = (score: number) => {
   if (score >= 85) return 'hsl(var(--success))';
@@ -17,18 +19,23 @@ const getChangeColor = (change: number) => {
   return 'hsl(var(--muted-foreground))';
 };
 
-const getChartData = () =>
+const getChartData = (mode: QualityMode) =>
   [...travelComponents]
-    .sort((a, b) => b.qualityScore - a.qualityScore)
+    .sort((a, b) => {
+      const scoreA = mode === 'builtin' ? a.qualityScore : a.perceivedQualityScore;
+      const scoreB = mode === 'builtin' ? b.qualityScore : b.perceivedQualityScore;
+      return scoreB - scoreA;
+    })
     .map(c => {
-      const history = c.history;
-      const prevScore = history.length >= 2 ? history[history.length - 2].value : c.qualityScore;
-      const change = Math.round((c.qualityScore - prevScore) * 10) / 10;
+      const history = mode === 'builtin' ? c.history : c.perceivedHistory;
+      const score = mode === 'builtin' ? c.qualityScore : c.perceivedQualityScore;
+      const prevScore = history.length >= 2 ? history[history.length - 2].value : score;
+      const change = Math.round((score - prevScore) * 10) / 10;
       return {
-        name: c.name.length > 12 ? c.name.substring(0, 10) + '…' : c.name,
+        name: c.name.length > 14 ? c.name.substring(0, 12) + '…' : c.name,
         fullName: c.name,
         group: c.group,
-        score: c.qualityScore,
+        score,
         change,
         id: c.id,
       };
@@ -41,12 +48,8 @@ const CustomTooltip = ({ active, payload }: any) => {
     <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
       <p className="font-semibold text-foreground text-sm mb-1">{data.fullName}</p>
       <p className="text-sm text-muted-foreground">Group: {data.group}</p>
-      <p className="text-sm" style={{ color: getScoreColor(data.score) }}>
-        Current: {data.score}%
-      </p>
-      <p className="text-sm" style={{ color: getChangeColor(data.change) }}>
-        Change: {data.change > 0 ? '+' : ''}{data.change}%
-      </p>
+      <p className="text-sm" style={{ color: getScoreColor(data.score) }}>Current: {data.score}%</p>
+      <p className="text-sm" style={{ color: getChangeColor(data.change) }}>Change: {data.change > 0 ? '+' : ''}{data.change}%</p>
     </div>
   );
 };
@@ -75,14 +78,7 @@ const CustomBar = (props: any) => {
           fill="hsl(var(--danger))"
         />
       )}
-      <text
-        x={arrowX}
-        y={arrowY - (change !== 0 ? arrowSize * 1.8 : arrowSize * 0.3)}
-        textAnchor="middle"
-        fill={getChangeColor(change)}
-        fontSize={9}
-        fontWeight="bold"
-      >
+      <text x={arrowX} y={arrowY - (change !== 0 ? arrowSize * 1.8 : arrowSize * 0.3)} textAnchor="middle" fill={getChangeColor(change)} fontSize={9} fontWeight="bold">
         {change > 0 ? '+' : ''}{change}
       </text>
     </g>
@@ -107,55 +103,72 @@ const HorizontalCustomBar = (props: any) => {
   );
 };
 
-/* ── Circular Progress Card ── */
+/* ── Circular Progress Card with score & change INSIDE circle ── */
 const CircularProgressCard = ({ data, onClick }: { data: any; onClick: () => void }) => {
-  const radius = 32;
-  const stroke = 6;
+  const radius = 44;
+  const stroke = 7;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (data.score / 100) * circumference;
   const size = (radius + stroke) * 2;
+  const center = radius + stroke;
 
   return (
     <Card
-      className="p-3 flex flex-col items-center gap-1.5 cursor-pointer hover:shadow-md transition-shadow"
+      className="p-3 flex flex-col items-center gap-2 cursor-pointer hover:shadow-md transition-shadow"
       onClick={onClick}
     >
-      <svg width={size} height={size} className="-rotate-90">
-        <circle cx={radius + stroke} cy={radius + stroke} r={radius} fill="none" stroke="hsl(var(--muted))" strokeWidth={stroke} />
-        <circle
-          cx={radius + stroke}
-          cy={radius + stroke}
-          r={radius}
-          fill="none"
-          stroke={getScoreColor(data.score)}
-          strokeWidth={stroke}
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-        />
-      </svg>
-      <span className="text-lg font-bold" style={{ color: getScoreColor(data.score) }}>{data.score}%</span>
-      <span className="text-[10px] text-center text-muted-foreground leading-tight line-clamp-2 max-w-[90px]">{data.fullName}</span>
-      <span className="text-xs font-semibold" style={{ color: getChangeColor(data.change) }}>
-        {data.change > 0 ? '▲ +' : data.change < 0 ? '▼ ' : '– '}{data.change}%
-      </span>
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg width={size} height={size} className="-rotate-90">
+          <circle cx={center} cy={center} r={radius} fill="none" stroke="hsl(var(--muted))" strokeWidth={stroke} />
+          <circle
+            cx={center}
+            cy={center}
+            r={radius}
+            fill="none"
+            stroke={getScoreColor(data.score)}
+            strokeWidth={stroke}
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            strokeLinecap="round"
+            className="transition-all duration-700"
+          />
+        </svg>
+        {/* Score & change inside the circle */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <span className="text-lg font-bold leading-none" style={{ color: getScoreColor(data.score) }}>
+            {data.score}%
+          </span>
+          <span className="text-[10px] font-semibold mt-0.5" style={{ color: getChangeColor(data.change) }}>
+            {data.change > 0 ? '▲ +' : data.change < 0 ? '▼ ' : '– '}{data.change}%
+          </span>
+        </div>
+      </div>
+      <span className="text-xs text-center text-muted-foreground leading-tight line-clamp-2 max-w-[110px]">{data.fullName}</span>
     </Card>
   );
 };
 
-export const ComponentQualityGrid = () => {
+export const ComponentQualityGrid = ({ qualityMode }: { qualityMode: QualityMode }) => {
   const navigate = useNavigate();
-  const chartData = getChartData();
+  const chartData = getChartData(qualityMode);
 
   const navigateToComponent = (fullName: string) => {
     const comp = travelComponents.find(c => c.name === fullName);
     if (comp) navigate(`/component/${comp.id}`);
   };
 
+  const components = travelComponents;
+  const scoreKey = qualityMode === 'builtin' ? 'qualityScore' : 'perceivedQualityScore';
+
   return (
     <div className="mb-6 sm:mb-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 sm:mb-6 gap-2">
-        <h2 className="text-xl sm:text-2xl font-bold">Component Quality Index</h2>
+        <h2 className="text-xl sm:text-2xl font-bold">
+          Component Quality Index
+          <span className="text-sm font-normal text-muted-foreground ml-2">
+            ({qualityMode === 'builtin' ? 'Built-in Quality' : 'Perceived Quality'})
+          </span>
+        </h2>
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
           <span className="flex items-center gap-1"><TrendingUp className="w-3.5 h-3.5 text-success" /> Improved</span>
           <span className="flex items-center gap-1"><TrendingDown className="w-3.5 h-3.5 text-danger" /> Declined</span>
@@ -163,22 +176,31 @@ export const ComponentQualityGrid = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="vertical">
+      <Tabs defaultValue="circular">
         <TabsList className="mb-4">
+          <TabsTrigger value="circular">Circular Progress</TabsTrigger>
           <TabsTrigger value="vertical">Column Chart</TabsTrigger>
           <TabsTrigger value="horizontal">Horizontal Bar</TabsTrigger>
-          <TabsTrigger value="circular">Circular Progress</TabsTrigger>
         </TabsList>
+
+        {/* ── Circular Progress Grid (Default) ── */}
+        <TabsContent value="circular">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+            {chartData.map(d => (
+              <CircularProgressCard key={d.id} data={d} onClick={() => navigateToComponent(d.fullName)} />
+            ))}
+          </div>
+        </TabsContent>
 
         {/* ── Vertical Column Chart ── */}
         <TabsContent value="vertical">
           <Card className="p-4 sm:p-6">
             <div className="h-[450px] sm:h-[500px] overflow-x-auto">
-              <div style={{ minWidth: `${chartData.length * 32}px`, height: '100%' }}>
+              <div style={{ minWidth: `${chartData.length * 50}px`, height: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ left: 5, right: 5, top: 30, bottom: 80 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                    <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 9 }} angle={-45} textAnchor="end" interval={0} height={80} />
+                    <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} angle={-45} textAnchor="end" interval={0} height={80} />
                     <YAxis domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.3)' }} />
                     <Bar dataKey="score" shape={<CustomBar />} cursor="pointer" onClick={(data: any) => navigateToComponent(data.fullName)} />
@@ -192,12 +214,12 @@ export const ComponentQualityGrid = () => {
         {/* ── Horizontal Bar Chart ── */}
         <TabsContent value="horizontal">
           <Card className="p-4 sm:p-6">
-            <div className="overflow-y-auto" style={{ height: `${Math.max(500, chartData.length * 28)}px` }}>
-              <ResponsiveContainer width="100%" height={chartData.length * 28}>
+            <div className="overflow-y-auto" style={{ height: `${Math.max(400, chartData.length * 32)}px` }}>
+              <ResponsiveContainer width="100%" height={chartData.length * 32}>
                 <BarChart data={chartData} layout="vertical" margin={{ left: 10, right: 60, top: 5, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
                   <XAxis type="number" domain={[0, 100]} stroke="hsl(var(--muted-foreground))" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 11 }} />
-                  <YAxis type="category" dataKey="fullName" width={140} stroke="hsl(var(--muted-foreground))" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
+                  <YAxis type="category" dataKey="fullName" width={160} stroke="hsl(var(--muted-foreground))" tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }} />
                   <Tooltip content={<CustomTooltip />} cursor={{ fill: 'hsl(var(--muted) / 0.3)' }} />
                   <Bar dataKey="score" shape={<HorizontalCustomBar />} cursor="pointer" onClick={(data: any) => navigateToComponent(data.fullName)} />
                 </BarChart>
@@ -205,33 +227,24 @@ export const ComponentQualityGrid = () => {
             </div>
           </Card>
         </TabsContent>
-
-        {/* ── Circular Progress Grid ── */}
-        <TabsContent value="circular">
-          <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-8 gap-3">
-            {chartData.map(d => (
-              <CircularProgressCard key={d.id} data={d} onClick={() => navigateToComponent(d.fullName)} />
-            ))}
-          </div>
-        </TabsContent>
       </Tabs>
 
       {/* Summary stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
         <Card className="p-3 text-center">
-          <div className="text-2xl font-bold">{travelComponents.length}</div>
+          <div className="text-2xl font-bold">{components.length}</div>
           <div className="text-xs text-muted-foreground">Total Components</div>
         </Card>
         <Card className="p-3 text-center">
-          <div className="text-2xl font-bold text-success">{travelComponents.filter(c => c.qualityScore >= 85).length}</div>
+          <div className="text-2xl font-bold text-success">{components.filter(c => c[scoreKey] >= 85).length}</div>
           <div className="text-xs text-muted-foreground">High Quality (≥85)</div>
         </Card>
         <Card className="p-3 text-center">
-          <div className="text-2xl font-bold text-warning">{travelComponents.filter(c => c.qualityScore >= 70 && c.qualityScore < 85).length}</div>
+          <div className="text-2xl font-bold text-warning">{components.filter(c => c[scoreKey] >= 70 && c[scoreKey] < 85).length}</div>
           <div className="text-xs text-muted-foreground">Needs Attention (70-84)</div>
         </Card>
         <Card className="p-3 text-center">
-          <div className="text-2xl font-bold text-danger">{travelComponents.filter(c => c.qualityScore < 70).length}</div>
+          <div className="text-2xl font-bold text-danger">{components.filter(c => c[scoreKey] < 70).length}</div>
           <div className="text-xs text-muted-foreground">At Risk (&lt;70)</div>
         </Card>
       </div>

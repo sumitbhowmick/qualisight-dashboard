@@ -3,6 +3,7 @@ import { TrendingUp } from 'lucide-react';
 interface QMIScoreProps {
   score: number;
   trend: number;
+  label?: string;
   className?: string;
 }
 
