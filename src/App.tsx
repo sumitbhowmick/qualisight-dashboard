@@ -28,6 +28,8 @@ const App = () => (
               <Route path="/category/:categoryId" element={<CategoryDetail />} />
               <Route path="/category/:categoryId/kpi/:kpiId/data" element={<KPIDataEntry />} />
               <Route path="/component/:componentId" element={<ComponentDetail />} />
+              <Route path="/component/:componentId/category/:categoryId" element={<ComponentCategoryDetail />} />
+              <Route path="/component/:componentId/category/:categoryId/kpi/:kpiId/data" element={<KPIDataEntry />} />
               <Route path="/settings" element={<Settings />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />

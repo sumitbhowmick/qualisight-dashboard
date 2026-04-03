@@ -844,22 +844,38 @@ const generateHistory = (base: number, volatility: number): { month: string; val
   });
 };
 
+const generateCategoryScores = (baseBuiltIn: number, basePerceived: number): ComponentCategoryScore[] => {
+  return categories.map(cat => {
+    const biVariance = Math.round((Math.random() - 0.5) * 20);
+    const pqVariance = Math.round((Math.random() - 0.5) * 20);
+    const biScore = Math.min(100, Math.max(40, baseBuiltIn + biVariance));
+    const pqScore = Math.min(100, Math.max(40, basePerceived + pqVariance));
+    return {
+      categoryId: cat.id,
+      builtInScore: biScore,
+      perceivedScore: pqScore,
+      builtInPrevScore: Math.min(100, Math.max(40, biScore + Math.round((Math.random() - 0.5) * 10))),
+      perceivedPrevScore: Math.min(100, Math.max(40, pqScore + Math.round((Math.random() - 0.5) * 10))),
+    };
+  });
+};
+
 export const travelComponents: ComponentData[] = [
-  { id: 'flight-search', name: 'Flight Search Engine', group: 'Booking & Reservation', qualityScore: 87, perceivedQualityScore: 82, trend: 'up', perceivedTrend: 'stable', history: generateHistory(87, 3), perceivedHistory: generateHistory(82, 4) },
-  { id: 'hotel-search', name: 'Hotel Search Engine', group: 'Booking & Reservation', qualityScore: 82, perceivedQualityScore: 79, trend: 'up', perceivedTrend: 'up', history: generateHistory(82, 4), perceivedHistory: generateHistory(79, 4) },
-  { id: 'car-rental', name: 'Car Rental Booking', group: 'Booking & Reservation', qualityScore: 78, perceivedQualityScore: 85, trend: 'stable', perceivedTrend: 'up', history: generateHistory(78, 3), perceivedHistory: generateHistory(85, 3) },
-  { id: 'fare-engine', name: 'Fare Calculation Engine', group: 'Pricing & Revenue', qualityScore: 91, perceivedQualityScore: 76, trend: 'up', perceivedTrend: 'down', history: generateHistory(91, 2), perceivedHistory: generateHistory(76, 5) },
-  { id: 'payment-gateway', name: 'Payment Gateway', group: 'Payment & Billing', qualityScore: 94, perceivedQualityScore: 91, trend: 'up', perceivedTrend: 'up', history: generateHistory(94, 2), perceivedHistory: generateHistory(91, 2) },
-  { id: 'refund-engine', name: 'Refund Processing', group: 'Payment & Billing', qualityScore: 76, perceivedQualityScore: 68, trend: 'down', perceivedTrend: 'down', history: generateHistory(76, 5), perceivedHistory: generateHistory(68, 5) },
-  { id: 'profile-manager', name: 'Traveler Profile Manager', group: 'Customer Management', qualityScore: 83, perceivedQualityScore: 88, trend: 'up', perceivedTrend: 'up', history: generateHistory(83, 3), perceivedHistory: generateHistory(88, 3) },
-  { id: 'loyalty-program', name: 'Loyalty Program', group: 'Customer Management', qualityScore: 77, perceivedQualityScore: 72, trend: 'stable', perceivedTrend: 'down', history: generateHistory(77, 4), perceivedHistory: generateHistory(72, 4) },
-  { id: 'gds-connector', name: 'GDS Connector', group: 'Integration & Connectivity', qualityScore: 89, perceivedQualityScore: 84, trend: 'up', perceivedTrend: 'stable', history: generateHistory(89, 2), perceivedHistory: generateHistory(84, 3) },
-  { id: 'api-gateway', name: 'API Gateway', group: 'Integration & Connectivity', qualityScore: 92, perceivedQualityScore: 90, trend: 'up', perceivedTrend: 'up', history: generateHistory(92, 2), perceivedHistory: generateHistory(90, 2) },
-  { id: 'ticketing-engine', name: 'Ticketing Engine', group: 'Operations & Support', qualityScore: 88, perceivedQualityScore: 80, trend: 'up', perceivedTrend: 'stable', history: generateHistory(88, 2), perceivedHistory: generateHistory(80, 3) },
-  { id: 'notification-engine', name: 'Notification Engine', group: 'Operations & Support', qualityScore: 83, perceivedQualityScore: 86, trend: 'up', perceivedTrend: 'up', history: generateHistory(83, 3), perceivedHistory: generateHistory(86, 3) },
-  { id: 'auth-service', name: 'Authentication Service', group: 'Security & Compliance', qualityScore: 95, perceivedQualityScore: 93, trend: 'up', perceivedTrend: 'up', history: generateHistory(95, 1), perceivedHistory: generateHistory(93, 2) },
-  { id: 'web-frontend', name: 'Web Frontend', group: 'User Interface', qualityScore: 84, perceivedQualityScore: 78, trend: 'up', perceivedTrend: 'down', history: generateHistory(84, 3), perceivedHistory: generateHistory(78, 4) },
-  { id: 'mobile-app', name: 'Mobile App', group: 'User Interface', qualityScore: 78, perceivedQualityScore: 74, trend: 'up', perceivedTrend: 'up', history: generateHistory(78, 4), perceivedHistory: generateHistory(74, 4) },
+  { id: 'flight-search', name: 'Flight Search Engine', qualityScore: 87, perceivedQualityScore: 82, trend: 'up', perceivedTrend: 'stable', history: generateHistory(87, 3), perceivedHistory: generateHistory(82, 4), categoryScores: generateCategoryScores(87, 82) },
+  { id: 'hotel-search', name: 'Hotel Search Engine', qualityScore: 82, perceivedQualityScore: 79, trend: 'up', perceivedTrend: 'up', history: generateHistory(82, 4), perceivedHistory: generateHistory(79, 4), categoryScores: generateCategoryScores(82, 79) },
+  { id: 'car-rental', name: 'Car Rental Booking', qualityScore: 78, perceivedQualityScore: 85, trend: 'stable', perceivedTrend: 'up', history: generateHistory(78, 3), perceivedHistory: generateHistory(85, 3), categoryScores: generateCategoryScores(78, 85) },
+  { id: 'fare-engine', name: 'Fare Calculation Engine', qualityScore: 91, perceivedQualityScore: 76, trend: 'up', perceivedTrend: 'down', history: generateHistory(91, 2), perceivedHistory: generateHistory(76, 5), categoryScores: generateCategoryScores(91, 76) },
+  { id: 'payment-gateway', name: 'Payment Gateway', qualityScore: 94, perceivedQualityScore: 91, trend: 'up', perceivedTrend: 'up', history: generateHistory(94, 2), perceivedHistory: generateHistory(91, 2), categoryScores: generateCategoryScores(94, 91) },
+  { id: 'refund-engine', name: 'Refund Processing', qualityScore: 76, perceivedQualityScore: 68, trend: 'down', perceivedTrend: 'down', history: generateHistory(76, 5), perceivedHistory: generateHistory(68, 5), categoryScores: generateCategoryScores(76, 68) },
+  { id: 'profile-manager', name: 'Traveler Profile Manager', qualityScore: 83, perceivedQualityScore: 88, trend: 'up', perceivedTrend: 'up', history: generateHistory(83, 3), perceivedHistory: generateHistory(88, 3), categoryScores: generateCategoryScores(83, 88) },
+  { id: 'loyalty-program', name: 'Loyalty Program', qualityScore: 77, perceivedQualityScore: 72, trend: 'stable', perceivedTrend: 'down', history: generateHistory(77, 4), perceivedHistory: generateHistory(72, 4), categoryScores: generateCategoryScores(77, 72) },
+  { id: 'gds-connector', name: 'GDS Connector', qualityScore: 89, perceivedQualityScore: 84, trend: 'up', perceivedTrend: 'stable', history: generateHistory(89, 2), perceivedHistory: generateHistory(84, 3), categoryScores: generateCategoryScores(89, 84) },
+  { id: 'api-gateway', name: 'API Gateway', qualityScore: 92, perceivedQualityScore: 90, trend: 'up', perceivedTrend: 'up', history: generateHistory(92, 2), perceivedHistory: generateHistory(90, 2), categoryScores: generateCategoryScores(92, 90) },
+  { id: 'ticketing-engine', name: 'Ticketing Engine', qualityScore: 88, perceivedQualityScore: 80, trend: 'up', perceivedTrend: 'stable', history: generateHistory(88, 2), perceivedHistory: generateHistory(80, 3), categoryScores: generateCategoryScores(88, 80) },
+  { id: 'notification-engine', name: 'Notification Engine', qualityScore: 83, perceivedQualityScore: 86, trend: 'up', perceivedTrend: 'up', history: generateHistory(83, 3), perceivedHistory: generateHistory(86, 3), categoryScores: generateCategoryScores(83, 86) },
+  { id: 'auth-service', name: 'Authentication Service', qualityScore: 95, perceivedQualityScore: 93, trend: 'up', perceivedTrend: 'up', history: generateHistory(95, 1), perceivedHistory: generateHistory(93, 2), categoryScores: generateCategoryScores(95, 93) },
+  { id: 'web-frontend', name: 'Web Frontend', qualityScore: 84, perceivedQualityScore: 78, trend: 'up', perceivedTrend: 'down', history: generateHistory(84, 3), perceivedHistory: generateHistory(78, 4), categoryScores: generateCategoryScores(84, 78) },
+  { id: 'mobile-app', name: 'Mobile App', qualityScore: 78, perceivedQualityScore: 74, trend: 'up', perceivedTrend: 'up', history: generateHistory(78, 4), perceivedHistory: generateHistory(74, 4), categoryScores: generateCategoryScores(78, 74) },
 ];
 
 // Built-in Quality Index history
