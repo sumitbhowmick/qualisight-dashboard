@@ -3,10 +3,11 @@ import { TrendingUp } from 'lucide-react';
 interface QMIScoreProps {
   score: number;
   trend: number;
+  label?: string;
   className?: string;
 }
 
-export const QMIScore = ({ score, trend, className = '' }: QMIScoreProps) => {
+export const QMIScore = ({ score, trend, label = 'Quality Index', className = '' }: QMIScoreProps) => {
   const circumference = 2 * Math.PI * 90;
   const offset = circumference - (score / 100) * circumference;
 
@@ -45,7 +46,7 @@ export const QMIScore = ({ score, trend, className = '' }: QMIScoreProps) => {
           <span className={`text-5xl font-bold ${getScoreColor(score)}`}>
             {score.toFixed(1)}%
           </span>
-          <span className="text-sm text-muted-foreground mt-1">Quality Index</span>
+          <span className="text-xs text-muted-foreground mt-1">{label}</span>
         </div>
       </div>
       <div className="flex items-center gap-2 mt-4">
