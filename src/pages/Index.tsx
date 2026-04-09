@@ -14,8 +14,8 @@ type QualityMode = 'builtin' | 'perceived';
 const Index = () => {
   const { getCalculatedCategories, getCalculatedQMI } = useConfig();
   const categories = getCalculatedCategories();
-  const builtInScore = getCalculatedQMI();
-  const perceivedScore = 81.3;
+  const builtInScore = 77.0;
+  const perceivedScore = 77.0;
   const builtInTrend = 5.2;
   const perceivedTrend = 3.8;
 
@@ -35,12 +35,12 @@ const Index = () => {
               className={`p-6 flex items-center justify-center cursor-pointer transition-all ${qualityMode === 'builtin' ? 'ring-2 ring-primary shadow-lg' : 'opacity-80 hover:opacity-100'}`}
               onClick={() => setQualityMode('builtin')}
             >
-              <QMIScore score={builtInScore} trend={builtInTrend} label="Built-in Quality" />
+              <QMIScore score={builtInScore} trend={builtInTrend} label="Quality Index" />
             </Card>
 
             {/* Built-in Quality Trend */}
             <Card className={`p-6 transition-opacity ${qualityMode === 'builtin' ? '' : 'opacity-60'}`}>
-              <h3 className="font-semibold mb-4 text-sm">Built-in Quality Trend</h3>
+              <h3 className="font-semibold mb-4 text-sm">Quality Index Trend</h3>
               <div className="h-52">
                 <TrendChart data={builtInQmiHistory} />
               </div>
@@ -68,7 +68,7 @@ const Index = () => {
         <div className="mb-4">
           <Tabs value={qualityMode} onValueChange={(v) => setQualityMode(v as QualityMode)}>
             <TabsList>
-              <TabsTrigger value="builtin">Built-in Quality</TabsTrigger>
+              <TabsTrigger value="builtin">Quality Index</TabsTrigger>
               <TabsTrigger value="perceived">Perceived Quality</TabsTrigger>
             </TabsList>
           </Tabs>
